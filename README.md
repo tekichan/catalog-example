@@ -93,6 +93,7 @@ The URL of the website is in format of https://\<CDN Endpoint\>.azureedge.net
 ## Appendix B - References
 - Acknowledgement of React JS design from [Material UI template](https://github.com/mui-org/material-ui/blob/master/docs/src/pages/getting-started/templates/album/Album.js)
 - [Creating an Amazon S3 bucket for website hosting and with a DeletionPolicy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-s3.html#scenario-s3-bucket-website)
+- [Host a static website in Azure Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-cli)
 
 ## Authors
 - Teki Chan *tekichan@gmail.com*
