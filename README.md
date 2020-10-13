@@ -3,11 +3,30 @@
 This repository is an example how AWS S3 and Azure Storage provide static website hosting service. You could follow the listed steps to host the example website in AWS and Azure respectively.
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](/LICENSE)
 
+AWS and Azure both provide website hosting feature in their storage services. Such feature is considered as a managed service of website hosting so that the website owners can transfer some infrastructure workload, such as hardware maintenance and sizing, to the cloud providers. The costing is so flexible with minimal upfront. This solution is suitable for typical static websites and even Single Page Applications in which traffic volumes and peaks often fluctuate.
+
 *The example website is a product catalog built by React JS. The detail will not be covered here. Setups of domain name, DNS and secure connection (https) are out of scope in this document.*
 
-The website files are located in **build** folder. The setup scripts are located in **scripts** folder.
+### Folder Structure
+- **build**: the production version of website files. It is built by `npm`. (not in repo)
+- **doc**: document files used by README
+- **public**: static webpage template by React JS
+- **scripts**: infrastruture setup scripts
+
+
+## Table of Contents 
+- [AWS S3](#aws-s3)  
+- [Azure Storage](#azure-storage)
+- [Appendix](#appendix)
+
+
+<a name="aws-s3"></a>
 
 ## AWS S3
+
+![AWS Architecture](doc/CatalogExampleWebsite-AWS.png)
+
+This approach is to utilize CloudFront as a HTTPS access point to the public. CloudFront delivers the content from an S3 bucket. CloudFront stores access logs to another S3 bucket for monitoring. The whole setup is implemented by CloudFormation.
 
 *Before you start, create an IAM user credentials with sufficient priviledges to execute `aws` CLI.*
 
@@ -33,6 +52,8 @@ aws cloudfront list-distributions --query "DistributionList.Items[].DomainName" 
 4. Browse the website.
 The URL of the website is in format of https://<DOMAIN PREFIX>.cloudfront.net
 - \<DOMAIN PREFIX\>: CloudFront Domain Prefix which is assigned by CloudFront automatically.
+
+<a name="azure-storage"></a>
 
 ## Azure Storage
 
@@ -87,6 +108,8 @@ az cdn endpoint rule add --name <CDN Endpoint> --resource-group <RESOURCE GROUP>
 9. Browse the website.
 The URL of the website is in format of https://\<CDN Endpoint\>.azureedge.net
 
+<a name="appendix"></a>
+
 ## Appendix A - How to build
 - Build React JS Frontend: `npm run build`
 
@@ -94,6 +117,7 @@ The URL of the website is in format of https://\<CDN Endpoint\>.azureedge.net
 - Acknowledgement of React JS design from [Material UI template](https://github.com/mui-org/material-ui/blob/master/docs/src/pages/getting-started/templates/album/Album.js)
 - [Creating an Amazon S3 bucket for website hosting and with a DeletionPolicy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-s3.html#scenario-s3-bucket-website)
 - [Host a static website in Azure Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-cli)
+
 
 ## Authors
 - Teki Chan *tekichan@gmail.com*

@@ -9,7 +9,7 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: error.html
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -27,6 +27,15 @@ Resources:
                 - !Ref S3Bucket
                 - /*
       Bucket: !Ref S3Bucket
+  S3BucketLog:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketName: !Join 
+              - ''
+              - - !Ref S3Bucket
+                - '-log'
+    DeletionPolicy: Delete      
   S3WebsiteDistrib:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -46,6 +55,13 @@ Resources:
         Enabled: 'true'
         Comment: Distribution Configuration for S3 Website Enabled
         DefaultRootObject: index.html
+        Logging:
+          IncludeCookies: 'true'
+          Bucket: !Join 
+              - ''
+              - - !Ref S3BucketLog
+                - '.s3.amazonaws.com'
+          Prefix: access
         DefaultCacheBehavior:
           TargetOriginId: S3WebsiteOrigin
           ForwardedValues:
