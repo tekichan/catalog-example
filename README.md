@@ -3,15 +3,20 @@
 This repository is an example how AWS S3 and Azure Storage provide static website hosting service. You could follow the listed steps to host the example website in AWS and Azure respectively.
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](/LICENSE)
 
-AWS and Azure both provide website hosting feature in their storage services. Such feature is considered as a managed service of website hosting so that the website owners can transfer some infrastructure workload, such as hardware maintenance and sizing, to the cloud providers. The costing is so flexible with minimal upfront. This solution is suitable for typical static websites and even Single Page Applications in which traffic volumes and peaks often fluctuate.
+AWS and Azure both provide website hosting feature in their storage services. Such feature is considered as a managed service of website hosting so that the website owners can transfer some infrastructure workload, such as hardware maintenance and sizing, to the cloud providers. The costing is so flexible with minimal upfront. This solution is suitable for typical static websites and even Single Page Applications in which traffic volumes and peaks are often highly variable and fluctuating.
+
+Both platforms provide CLI method to automate the deployment, in addition to web portal. This automation approach is useful for large scale of deployment, governance and integration in CI/CD. This below section will instruct how to run CLI to build the resource stack accordingly. The pricing is also described to demonstrate the cost efficiency.
+
+![Example Preview](doc/CatalogExample-Preview.gif)
 
 *The example website is a product catalog built by React JS. The detail will not be covered here. Setups of domain name, DNS and secure connection (https) are out of scope in this document.*
 
 ### Folder Structure
-- **build**: the production version of website files. It is built by `npm`. (not in repo)
+- **build**: the production version of website files. It is built by `npm`. (not saved in this repository, refer to the Appendix)
 - **doc**: document files used by README
 - **public**: static webpage template by React JS
 - **scripts**: infrastruture setup scripts
+- **src**: React JS source codes
 
 
 ## Table of Contents 
@@ -30,7 +35,8 @@ This approach is to utilize CloudFront as a HTTPS access point to the public. Cl
 
 *Before you start, create an IAM user credentials with sufficient priviledges to execute `aws` CLI.*
 
-1. Create CloudFormation Stack to create S3 Bucket
+1. CREATE CloudFormation Stack to create S3 Bucket
+
 ```Bash
 aws cloudformation create-stack --stack-name <STACK NAME> --profile <USER PROFILE>  --template-body file://./scripts/aws_cf_s3_create_website.yaml --parameters ParameterKey=BucketNameParam,ParameterValue=<BUCKET NAME> ParameterKey=RegionCodeParam,ParameterValue=<REGION CODE>
 ```
@@ -39,7 +45,14 @@ aws cloudformation create-stack --stack-name <STACK NAME> --profile <USER PROFIL
 - \<BUCKET NAME\>: The S3 bucket to store the website content
 - \<REGION CODE\>: The region code of the S3 Bucket. The region should have been configured in the profile used above.
 
-2. Upload website files to the S3 Bucket
+2. After the stack is created completely, UPLOAD website files to the S3 Bucket
+
+Stack Status Check:
+```Bash 
+aws clouformation describe-stacks --stack-name <STACK NAME> --profile <USER PROFILE>
+```
+
+Upload:
 ```Bash
 aws s3 cp ./build/ s3://<BUCKET NAME>/ --recursive --profile <USER PROFILE>
 ```
@@ -50,12 +63,38 @@ aws cloudfront list-distributions --query "DistributionList.Items[].DomainName" 
 ```
 
 4. Browse the website.
-The URL of the website is in format of https://<DOMAIN PREFIX>.cloudfront.net
+The URL of the website is in format of https://\<DOMAIN PREFIX\>.cloudfront.net. The whole domain name can be found in the above command.
 - \<DOMAIN PREFIX\>: CloudFront Domain Prefix which is assigned by CloudFront automatically.
+
+### Stack Deletion
+If you would like to delete the whole stack of resources, e.g clean up or no longer use the website, you could run the command:
+```Bash
+aws s3 rb s3://<BUCKET NAME> --profile <USER PROFILE> --force
+aws s3 rb s3://<BUCKET NAME>-log --profile <USER PROFILE> --force
+aws cloudformation delete-stack --stack-name <STACK NAME> --profile <USER PROFILE>
+```
+
+### Pricing
+*Assume USD in ap-southeast-1 region (Singapore) as of 1st Oct 2020*
+
+| Service | Category | Price |
+| ------- | -------- | ----- |
+| CloudFormation | AWS Resources | $0 |
+| S3 | Standard - First 50TB / Month | $0.025 per GB |
+| S3 | Standard - PUT,COPY,POST,LIST | $0.005 per 1K requests |
+| S3 | Standard - GET,SELECT | $0.0004 per 1K requests |
+| S3 | Data In | $0 |
+| S3 | Data Out to CloudFront | $0 |
+| CloudFront | Data Out to Internet | $0.14 per GB |
+| CloudFront | HTTPS requests | $0.009 per 10K requests | 
+
+e.g. 1GB website content to serve 5M users, the monthly cost is estimated as $4.7.
 
 <a name="azure-storage"></a>
 
 ## Azure Storage
+
+![Azure Architecture](doc/CatalogExampleWebsite-Azure.png)
 
 *Before you start, create a principal with sufficient priviledges to execute `az` CLI. `az login` should have been executed successfully*
 
@@ -108,6 +147,33 @@ az cdn endpoint rule add --name <CDN Endpoint> --resource-group <RESOURCE GROUP>
 9. Browse the website.
 The URL of the website is in format of https://\<CDN Endpoint\>.azureedge.net
 
+### Enable Access Log in Azure CDN
+There is no `az` command to enable Access Log in Azure CDN. It can be enabled in Azure Portal.
+
+1. Register Microsoft Insights in the subscription
+```Bash
+az provider register --namespace Microsoft.Insights
+```
+
+2. Go to Azure Portal \> CDN, click the created CDN name, then click Monitoring \> Diagnostics setting. Select AzureCdnAccessLog and Archive to a storage account. Click Save to save the setting.
+![Add AzureCdnAccessLog in CDN Diagnostics](doc/Azure_Setup_CDN_Diagnostics.png)
+
+3. You can find the access log files in the selected Storage Blob Service's Container > **insights-logs-azurecdnaccesslog** folder.
+
+### Pricing
+*Assume USD in southeastasia region (Southeast Asia) as of 1st Oct 2020*
+
+| Service | Category | Price |
+| ------- | -------- | ----- |
+| Bandwidth | Inbound Data Transfer | $0 |
+| Bandwidth | Outbound Data Transfer to CDN | $0 |
+| Storage Blob LRS | First 50TB/month Hot | $0.02 per GB |
+| Storage Blob LRS | Data Write Hot | $0 |
+| Storage Blob LRS | Data Retrieval Hot | $0 |
+| CDN | Static Zone 2 - First 10TB/month | $0.129 per GB |
+
+e.g. 1GB website content to serve 5M users, the monthly cost is estimated as $0.13.
+
 <a name="appendix"></a>
 
 ## Appendix A - How to build
@@ -117,7 +183,9 @@ The URL of the website is in format of https://\<CDN Endpoint\>.azureedge.net
 - Acknowledgement of React JS design from [Material UI template](https://github.com/mui-org/material-ui/blob/master/docs/src/pages/getting-started/templates/album/Album.js)
 - [Creating an Amazon S3 bucket for website hosting and with a DeletionPolicy](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-s3.html#scenario-s3-bucket-website)
 - [Host a static website in Azure Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-cli)
-
+- [Monitoring Metrics and Raw Logs for Azure CDN from Microsoft](https://docs.microsoft.com/en-us/azure/cdn/enable-raw-logs)
+- [AWS Pricing Calculator](https://calculator.aws)
+- [Azure Pricing Calculator](https://azure.microsoft.com/en-us/pricing/calculator/)
 
 ## Authors
 - Teki Chan *tekichan@gmail.com*
