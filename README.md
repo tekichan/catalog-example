@@ -22,6 +22,7 @@ Both platforms provide CLI method to automate the deployment, in addition to web
 ## Table of Contents 
 - [AWS S3](#aws-s3)  
 - [Azure Storage](#azure-storage)
+- [Github Pages](#github-pages)
 - [Appendix](#appendix)
 
 
@@ -173,6 +174,46 @@ az provider register --namespace Microsoft.Insights
 | CDN | Static Zone 2 - First 10TB/month | $0.129 per GB |
 
 e.g. 1GB website content to serve 5M users, the monthly cost is estimated as $0.13.
+
+
+<a name="github-pages"></a>
+
+## Github Pages
+
+With response to Dear Mr. Roger, here is added with a bonus section - How to deploy a static website to [Github Pages](https://pages.github.com/), which is suitable for personal usage.
+
+*Prerequisite: Apply a Github account*
+
+1. Install gh-pages for deployment
+```Bash
+npm install gh-pages --save-dev
+```
+
+2. Modify **package.json** to provide **homepage** and deployment commands.
+```json
+...
+    "homepage": "http://<GITHUB_USERNAME>.github.io/<GITHUB_REPO>",
+...
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+...    
+```
+- \<GITHUB_USERNAME\>: Github Username
+- \<GITHUB_REPO\>: Github Repository
+
+3. Create a remote repository in Github and initialize the website content with git
+- Git initialize: `git init`
+- Add a remote repository (after the repository in Github is created): `git remote add origin <GITHUB_REPO_URL>.git`
+, where \<GITHUB_REPO_URL\>: Github Repository URL
+
+4. Deploy the website content to Github Pages
+```Bash
+npm run deploy
+```
+
+5. Browse the website at http://<GITHUB_USERNAME>.github.io/<GITHUB_REPO>
+The example here is [https://tekichan.github.io/catalog-example](https://tekichan.github.io/catalog-example).
+
 
 <a name="appendix"></a>
 
