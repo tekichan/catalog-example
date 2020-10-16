@@ -161,6 +161,12 @@ az provider register --namespace Microsoft.Insights
 
 3. You can find the access log files in the selected Storage Blob Service's Container > **insights-logs-azurecdnaccesslog** folder.
 
+### Resource Deletion
+If you would like to delete the whole group of resources, e.g clean up or no longer use the website, you could run the command:
+```Bash
+az group delete --name <RESOURCE GROUP>
+```
+
 ### Pricing
 *Assume USD in southeastasia region (Southeast Asia) as of 1st Oct 2020*
 
